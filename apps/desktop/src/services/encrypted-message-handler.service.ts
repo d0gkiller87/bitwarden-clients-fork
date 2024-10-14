@@ -122,7 +122,7 @@ export class EncryptedMessageHandlerService {
     }
 
     const ciphers = await this.cipherService.getAllDecryptedForUrl(payload.uri);
-    ciphers.sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b));
+    ciphers.sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b, payload.uri));
 
     ciphers.forEach((c) => {
       ciphersResponse.push({

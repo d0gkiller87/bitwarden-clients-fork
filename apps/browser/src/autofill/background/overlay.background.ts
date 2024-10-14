@@ -330,7 +330,7 @@ export class OverlayBackground implements OverlayBackgroundInterface {
     }
 
     const cipherViews = (await this.cipherService.getAllDecryptedForUrl(currentTab.url || "")).sort(
-      (a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b),
+      (a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b, currentTab.url),
     );
 
     return this.cardAndIdentityCiphers
@@ -354,7 +354,7 @@ export class OverlayBackground implements OverlayBackgroundInterface {
         CipherType.Card,
         CipherType.Identity,
       ])
-    ).sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b));
+    ).sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b, currentTab.url));
     for (let cipherIndex = 0; cipherIndex < cipherViews.length; cipherIndex++) {
       const cipherView = cipherViews[cipherIndex];
       if (

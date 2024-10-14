@@ -39,7 +39,7 @@ export class CipherContextMenuHandler {
       CipherType.Card,
       CipherType.Identity,
     ]);
-    ciphers.sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b));
+    ciphers.sort((a, b) => this.cipherService.sortCiphersByLastUsedThenName(a, b, url));
 
     const groupedCiphers: Record<AutofillCipherTypeId, CipherView[]> = ciphers.reduce(
       (ciphersByType, cipher) => {

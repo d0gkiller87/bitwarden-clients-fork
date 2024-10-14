@@ -1062,7 +1062,61 @@ export class CipherService implements CipherServiceAbstraction {
     await this.deleteAttachment(id, attachmentId);
   }
 
-  sortCiphersByLastUsed(a: CipherView, b: CipherView): number {
+  levenshtein(a: string, b: string): number {
+    // by https://gist.github.com/keesey/e09d0af833476385b9ee13b6d26a2b84
+    const an = a ? a.length : 0;
+    const bn = b ? b.length : 0;
+    if (an === 0) {
+      return bn;
+    }
+    if (bn === 0) {
+      return an;
+    }
+    const matrix = new Array<number[]>(bn + 1);
+    for (let i = 0; i <= bn; ++i) {
+      const row = (matrix[i] = new Array<number>(an + 1));
+      row[0] = i;
+    }
+    const firstRow = matrix[0];
+    for (let j = 1; j <= an; ++j) {
+      firstRow[j] = j;
+    }
+    for (let i = 1; i <= bn; ++i) {
+      for (let j = 1; j <= an; ++j) {
+        if (b.charAt(i - 1) === a.charAt(j - 1)) {
+          matrix[i][j] = matrix[i - 1][j - 1];
+        } else {
+          matrix[i][j] =
+            Math.min(
+              matrix[i - 1][j - 1], // substitution
+              matrix[i][j - 1], // insertion
+              matrix[i - 1][j], // deletion
+            ) + 1;
+        }
+      }
+    }
+    return matrix[bn][an];
+  }
+
+  sortCiphersByLastUsed(a: CipherView, b: CipherView, url?: string): number {
+    if (url != null) {
+      url = new URL(url + "/").origin;
+      const a_similarity = Math.min(
+        ...a.login.uris.map((a_uri) =>
+          this.levenshtein(url, new URL(a_uri.launchUri + "/").origin),
+        ),
+        Infinity,
+      );
+      const b_similarity = Math.min(
+        ...b.login.uris.map((b_uri) =>
+          this.levenshtein(url, new URL(b_uri.launchUri + "/").origin),
+        ),
+        Infinity,
+      );
+      if (a_similarity < b_similarity) {return -1;}
+      else if (a_similarity > b_similarity) {return 1;}
+    }
+
     const aLastUsed =
       a.localData && a.localData.lastUsedDate ? (a.localData.lastUsedDate as number) : null;
     const bLastUsed =
@@ -1086,8 +1140,8 @@ export class CipherService implements CipherServiceAbstraction {
     return 0;
   }
 
-  sortCiphersByLastUsedThenName(a: CipherView, b: CipherView): number {
-    const result = this.sortCiphersByLastUsed(a, b);
+  sortCiphersByLastUsedThenName(a: CipherView, b: CipherView, url?: string): number {
+    const result = this.sortCiphersByLastUsed(a, b, url);
     if (result !== 0) {
       return result;
     }
